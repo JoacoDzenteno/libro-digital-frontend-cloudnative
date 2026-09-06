@@ -1,0 +1,125 @@
+.dashboard-container {
+    min-height: 100vh;
+    background-color: #f0f2f5;
+}
+
+.dashboard-header {
+    background-color: #1a237e;
+    color: white;
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.dashboard-header-title {
+    margin: 0;
+    font-size: clamp(16px, 2.5vw, 22px);
+}
+
+.dashboard-header-subtitle {
+    margin: 0;
+    font-size: clamp(11px, 1.5vw, 13px);
+    opacity: 0.8;
+}
+
+.dashboard-user-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.dashboard-username {
+    font-size: clamp(11px, 1.5vw, 14px);
+}
+
+.dashboard-logout-btn {
+    padding: 8px 16px;
+    background-color: white;
+    color: #1a237e;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.dashboard-logout-btn:hover {
+    background-color: #e8eaf6;
+}
+
+.dashboard-main {
+    padding: clamp(16px, 3vw, 32px);
+}
+
+.dashboard-menu-title {
+    color: #333;
+    margin-bottom: 24px;
+    text-align: center;
+    font-size: clamp(18px, 2.5vw, 24px);
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: clamp(12px, 2vw, 20px);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard-card {
+    padding: clamp(16px, 2.5vw, 28px);
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-card-title {
+    margin: 0 0 8px 0;
+    font-size: clamp(14px, 1.8vw, 18px);
+}
+
+.dashboard-card-desc {
+    margin: 0;
+    font-size: clamp(11px, 1.2vw, 13px);
+    opacity: 0.85;
+}
+
+@media (max-width: 900px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .dashboard-header {
+        padding: 16px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-main {
+        padding: 16px;
+    }
+}
+
+.error-field {
+    color: #e53e3e;
+    font-size: 0.78rem;
+    margin-top: 4px;
+    display: block;
+}

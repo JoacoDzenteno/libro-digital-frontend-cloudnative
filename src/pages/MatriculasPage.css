@@ -1,0 +1,208 @@
+.matriculas-container {
+    min-height: 100vh;
+    background-color: #f0f2f5;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.matriculas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.matriculas-header h1 {
+    color: #0277bd;
+    font-size: clamp(18px, 2.5vw, 24px);
+    margin: 0;
+}
+
+.btn-volver {
+    padding: 8px 16px;
+    background-color: #e8eaf6;
+    color: #1a237e;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.btn-volver:hover { background-color: #c5cae9; }
+
+.btn-nuevo {
+    padding: 10px 20px;
+    background-color: #0277bd;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.btn-nuevo:hover { background-color: #01579b; }
+
+.btn-eliminar {
+    padding: 6px 12px;
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background-color 0.2s;
+}
+
+.btn-eliminar:hover { background-color: #ffcdd2; }
+
+.alert-success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    border-left: 4px solid #2e7d32;
+}
+
+.alert-error {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    border-left: 4px solid #c62828;
+}
+
+.form-card {
+    background-color: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+}
+
+.form-card h2 {
+    color: #0277bd;
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+.matricula-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-field label {
+    font-size: 13px;
+    color: #333;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.form-field input,
+.form-field select {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+    outline: none;
+    border-color: #0277bd;
+}
+
+.btn-guardar {
+    width: 100%;
+    padding: 12px;
+    background-color: #0277bd;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background-color 0.2s;
+}
+
+.btn-guardar:hover { background-color: #01579b; }
+
+.tabla-container {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    overflow-x: auto;
+}
+
+.matriculas-tabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.matriculas-tabla th {
+    background-color: #0277bd;
+    color: white;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 14px;
+}
+
+.matriculas-tabla td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    color: #333;
+}
+
+.matriculas-tabla tr:hover { background-color: #f5f5f5; }
+
+.acciones-cell {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.select-estado {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.badge-estado {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-activa { background-color: #e8f5e9; color: #2e7d32; }
+.badge-retirada { background-color: #ffebee; color: #c62828; }
+.badge-trasladada { background-color: #fff3e0; color: #e65100; }
+
+@media (max-width: 600px) {
+    .matricula-form .form-row { grid-template-columns: 1fr; }
+    .acciones-cell { flex-direction: column; }
+}
+
+.error-field {
+    color: #e53e3e;
+    font-size: 0.78rem;
+    margin-top: 4px;
+    display: block;
+}
