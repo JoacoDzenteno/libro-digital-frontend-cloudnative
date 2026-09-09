@@ -1,90 +1,113 @@
-# Libro Digital Frontend - Colegio Bernardo O'Higgins
+# Libro Digital · Frontend
 
-Frontend del sistema de libro de clases digital desarrollado con React + Vite.
+Interfaz del libro de clases digital, en React + Vite. Base de trabajo para
+**DSY1107 Desarrollo Cloud Native I**: sobre esta app se va a montar el inicio de
+sesión con Microsoft usando MSAL.
 
-## Tecnologías
-- React 18
-- Vite 6
-- React Router DOM
-- Axios
-- JavaScript
+El backend vive en su propio repositorio: **libro-digital-backend-cloudnative**.
+Sin el backend corriendo, esta app no hace nada.
 
-## Requisitos previos
-- Node.js v18+
-- npm v9+
-- Backend corriendo (ver repositorio libro-digital-backend-zenteno)
+---
 
-## Instalación
+## Antes de partir
+
+| Herramienta | Versión | Cómo comprobar |
+|---|---|---|
+| Node.js | 18 o superior | `node -v` |
+| npm | 9 o superior | `npm -v` |
+| El backend | levantado y sembrado | http://localhost:8761 con 7 servicios UP |
+
+---
+
+## Levantarlo
 
 ```bash
 npm install
-```
-
-## Ejecución
-
-```bash
 npm run dev
 ```
 
-Accede en: `http://localhost:5173`
+Queda en http://localhost:5173.
 
-## Estructura del proyecto
+Para entrar necesitas usuarios en la base. Si todavía no corriste
+`./scripts/seed-usuarios.sh` en el repositorio del backend, hazlo ahora: las
+bases arrancan vacías y el login va a fallar sin importar qué escribas.
 
+| Email | Contraseña | Rol | Qué ve |
+|---|---|---|---|
+| admin@colegio.cl | `11111111-1` | ADMINISTRATIVO | los seis módulos |
+| profesor@colegio.cl | `22222222-2` | PROFESOR | libro, comunicaciones, reportes |
+| estudiante@colegio.cl | `33333333-3` | ESTUDIANTE | libro, comunicaciones |
+| apoderado@colegio.cl | `44444444-4` | APODERADO | libro, comunicaciones |
+
+---
+
+## Estructura
+
+```
 src/
-├── context/          # Contexto de autenticación
-│   └── AuthContext.jsx
-├── pages/            # Páginas de la aplicación
-│   ├── LoginPage.jsx
-│   ├── LoginPage.css
-│   ├── DashboardPage.jsx
-│   ├── DashboardPage.css
-│   ├── UsuariosPage.jsx
-│   ├── UsuariosPage.css
-│   ├── PerfilPage.jsx
-│   └── PerfilPage.css
-└── services/         # Servicios de comunicación con el backend
-├── authService.js
-└── usuarioService.js
+├── App.jsx                 rutas + PrivateRoute
+├── main.jsx
+├── context/
+│   └── AuthContext.jsx     sesión actual  ── lo reemplaza MSAL
+├── pages/                  una página + su CSS por módulo
+│   ├── LoginPage · DashboardPage · UsuariosPage · PerfilPage
+│   ├── AcademicoPage · MatriculasPage · LibroDigitalPage
+│   └── ComunicacionesPage · ReportesPage
+└── services/               un archivo axios por microservicio
+    ├── authService.js      login/logout      ── lo reemplaza MSAL
+    ├── usuarioService.js · academicoService.js · matriculaService.js
+    └── libroDigitalService.js · comunicacionesService.js · reportesService.js
+```
 
-## Funcionalidades
+Todo el tráfico pasa por el API Gateway en `http://localhost:8080`. Hoy esa URL
+está escrita a mano en cada archivo de `services/`; sacarla a una variable de
+entorno es parte del trabajo de este semestre.
 
-- Login con JWT
-- Dashboard con permisos por rol
-- Gestión de usuarios (solo ADMINISTRATIVO)
-- Perfil de usuario con cambio de email y contraseña
+Stack: React 19 · Vite 8 · React Router DOM 7 · Axios.
 
-## Roles y accesos
+---
 
-| Rol | Acceso |
+## Lo que va a cambiar este semestre
+
+La app se queda en React (el docente lo autorizó, aunque el enunciado pida
+Angular). Lo único que cambia es la capa de autenticación:
+
+| Archivo | Qué le pasa |
 |---|---|
-| ADMINISTRATIVO | Dashboard completo (6 módulos) |
-| PROFESOR | Libro Digital, Comunicaciones, Reportes |
-| ESTUDIANTE | Libro Digital, Comunicaciones |
-| APODERADO | Libro Digital, Comunicaciones |
+| `main.jsx` | Se envuelve la app en `<MsalProvider>` |
+| `context/AuthContext.jsx` | **Se borra.** Lo reemplaza el hook `useMsal()` |
+| `services/authService.js` | **Se borra.** MSAL maneja token, sesión y renovación |
+| `App.jsx` → `PrivateRoute` | Pasa a usar `useIsAuthenticated()` |
+| Los 7 `services/*.js` | Se les quita `getHeaders()`; un interceptor pone el token |
+| `LoginPage.jsx` | El formulario se cambia por un botón de Microsoft |
+| `PerfilPage.jsx` | Sale el cambio de contraseña |
+| `DashboardPage.jsx` | Lee el rol desde el token, no desde `localStorage` |
+| Las otras 6 páginas | **No se tocan** |
 
-## Credenciales de prueba
+### Equivalencias con lo que nombra la pauta
 
-| Email | Contraseña | Rol |
+La pauta está escrita para Angular. Estas son las piezas equivalentes en React,
+y dónde van a vivir:
+
+| La pauta nombra (Angular) | En este proyecto (React) |
+|---|---|
+| `MsalModule` | `<MsalProvider>` en `src/main.jsx` |
+| `MsalService` | hook `useMsal()` |
+| `MsalGuard` | `PrivateRoute` con `useIsAuthenticated()` en `src/App.jsx` |
+| `MsalInterceptor` | interceptor de axios en `src/services/api.js` |
+
+---
+
+## Cómo trabajamos
+
+| Rama | Quién | Qué toca |
 |---|---|---|
-| admin@colegio.cl | admin123 | ADMINISTRATIVO |
-| jperez2@colegio.cl | 98765432-1 | PROFESOR |
-| jo.zenteno@colegio.cl | 20052945-6 | ESTUDIANTE |
+| `feature/identidad-msal` | A | MSAL, login, guard, dashboard |
+| `feature/bff-security` | B | (backend) |
+| `feature/cloud-infra` | C | interceptor, servicios, despliegue |
 
-## Conexión con el backend
+A y C tocan este repositorio. El único archivo compartido es `src/authConfig.js`:
+lo escribe A, lo consume C.
 
-Todo el tráfico pasa por el **API Gateway**:
-
-http://localhost:8080
-
-El Gateway enruta automáticamente a cada microservicio:
-
-| Ruta | Microservicio |
-|---|---|
-| /api/auth/** | ms-usuarios (8081) |
-| /api/usuarios/** | ms-usuarios (8081) |
-| /api/academico/** | ms-academico (8082) |
-| /api/matricula/** | ms-matricula (8083) |
-| /api/libro/** | ms-libro-digital (8084) |
-| /api/comunicaciones/** | ms-comunicaciones (8085) |
-| /api/reportes/** | ms-reportes (8086) |
-
+**No subas** los identificadores del tenant de Entra ID. Van por el canal del
+grupo, no versionados.
