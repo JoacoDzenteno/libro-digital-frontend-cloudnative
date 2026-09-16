@@ -111,3 +111,16 @@ lo escribe A, lo consume C.
 
 **No subas** los identificadores del tenant de Entra ID. Van por el canal del
 grupo, no versionados.
+
+
+## 📌 Equivalencias MSAL (Angular vs React)
+
+Dado que este proyecto fue desarrollado con la librería oficial para React (`@azure/msal-react`), los conceptos y componentes difieren de los nombres mencionados en la pauta de evaluación (que hace referencia a `@azure/msal-angular`). 
+
+Para facilitar la revisión, aquí se presenta la equivalencia de cómo se implementaron los requerimientos:
+
+| Concepto en la Pauta (Angular) | Implementación en este proyecto (React) | Ubicación / Descripción |
+| :--- | :--- | :--- |
+| **MsalGuard** | `<AuthenticatedTemplate>` y `<UnauthenticatedTemplate>` | En `App.jsx`. Componentes de MSAL React que protegen las rutas bloqueando el acceso a usuarios sin sesión. |
+| **MsalInterceptor** | Interceptor de Axios + `acquireTokenSilent()` | Se encarga de adjuntar el Token Bearer de Microsoft en las cabeceras de las peticiones HTTP al backend. (Parte C). |
+| **MSAL_INSTANCE / MsalModule** | `PublicClientApplication` y `<MsalProvider>` | En `main.jsx`. Provee la instancia de MSAL a toda la aplicación. |
