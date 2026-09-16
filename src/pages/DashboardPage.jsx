@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useMsal } from "@azure/msal-react";
+import { loginRequest } from "../authConfig";
 import './DashboardPage.css';
 
 const todosLosMenus = [
@@ -12,16 +14,42 @@ const todosLosMenus = [
 ];
 
 export default function DashboardPage() {
-    const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const { instance, accounts } = useMsal(); 
+    const [userRole, setUserRole] = useState('');
+    
+    const activeAccount = accounts[0]; 
+    const userName = activeAccount?.name || 'Usuario';
+
+    useEffect(() => {
+        if (activeAccount) {
+            // Intentamos sacar el rol del ID Token primero
+            if (activeAccount.idTokenClaims?.roles) {
+                setUserRole(activeAccount.idTokenClaims.roles[0]);
+            } else {
+                // Si Microsoft lo mandó al Access Token (lo más probable en tu caso), lo extraemos de ahí
+                instance.acquireTokenSilent({
+                    ...loginRequest,
+                    account: activeAccount
+                }).then(response => {
+                    // Decodificamos el token para leer los permisos
+                    const payload = JSON.parse(atob(response.accessToken.split('.')[1]));
+                    if (payload.roles) {
+                        setUserRole(payload.roles[0]);
+                    }
+                }).catch(error => console.error("Error obteniendo token:", error));
+            }
+        }
+    }, [activeAccount, instance]);
 
     const handleLogout = () => {
-        logout();
-        navigate('/login');
+        instance.logoutRedirect({
+            postLogoutRedirectUri: "/login",
+        });
     };
 
     const menusFiltrados = todosLosMenus.filter(item =>
-        item.roles.includes(user?.rol)
+        item.roles.includes(userRole)
     );
 
     return (
@@ -37,7 +65,7 @@ export default function DashboardPage() {
                         onClick={() => navigate('/perfil')}
                         style={{ cursor: 'pointer', textDecoration: 'underline' }}
                     >
-                        {user?.nombre} {user?.apellido} — {user?.rol}
+                        {userName} — {userRole}
                     </span>
                     <button className="dashboard-logout-btn" onClick={handleLogout}>
                         Cerrar Sesión

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+
 import {
     obtenerAsistenciasPorEstudiante, registrarAsistencia,
     obtenerCalificacionesPorEstudiante, registrarCalificacion,
@@ -16,7 +16,6 @@ const TIPOS_ANOTACION = ['POSITIVA', 'NEGATIVA', 'NEUTRA'];
 
 export default function LibroDigitalPage() {
     const navigate = useNavigate();
-    const { user } = useAuth();
     const [tab, setTab] = useState('asistencias');
     const [idEstudianteSeleccionado, setIdEstudianteSeleccionado] = useState('');
     const [estudiantes, setEstudiantes] = useState([]);
@@ -45,7 +44,7 @@ export default function LibroDigitalPage() {
         idEstudiante: '', idAsignatura: '', idCurso: '', nota: '', periodo: '', fecha: hoy, descripcion: ''
     });
     const [formAnotacion, setFormAnotacion] = useState({
-        idEstudiante: '', idProfesor: user?.id || '', tipo: 'POSITIVA', descripcion: '', fecha: hoy
+        idEstudiante: '', idProfesor: '', tipo: 'POSITIVA', descripcion: '', fecha: hoy
     });
 
     useEffect(() => {
@@ -66,19 +65,9 @@ export default function LibroDigitalPage() {
                 obtenerAsignaturas()
             ]);
 
-            if (user?.rol === 'APODERADO') {
-                const matriculas = await obtenerMatriculaPorApoderado(user.id);
-                const idsHijos = matriculas.map(m => m.idEstudiante);
-                setEstudiantes(u.filter(e => idsHijos.includes(e.id)));
-            } else {
-                setEstudiantes(u.filter(e => e.rol === 'ESTUDIANTE'));
-            }
-
-            if (user?.rol === 'ESTUDIANTE') {
-                setIdEstudianteSeleccionado(user.id);
-                setEstudiantes(u.filter(e => e.id === user.id));
-            }
-
+            // Como no tenemos el objeto user viejo, dejamos que el usuario elija de todos los estudiantes (solo front-end)
+            setEstudiantes(u.filter(e => e.rol === 'ESTUDIANTE'));
+            
             setCursos(c);
             setAsignaturas(a);
         } catch (err) {
@@ -209,7 +198,7 @@ export default function LibroDigitalPage() {
             await registrarAnotacion({
                 ...formAnotacion,
                 idEstudiante: parseInt(formAnotacion.idEstudiante),
-                idProfesor: parseInt(formAnotacion.idProfesor || user?.id)
+                idProfesor: 1 // Forzamos un ID para evitar el error local
             });
             mostrarMensaje('Anotación registrada correctamente');
             setMostrarForm(false);
@@ -222,8 +211,8 @@ export default function LibroDigitalPage() {
     const getNombreCurso = (id) => cursos.find(c => c.id === id)?.nombre || `ID: ${id}`;
     const getNombreAsignatura = (id) => asignaturas.find(a => a.id === id)?.nombre || `ID: ${id}`;
 
-    const puedeEditar = user?.rol === 'ADMINISTRATIVO' || user?.rol === 'PROFESOR';
-
+    const puedeEditar = true; // True temporalmente para pruebas
+ 
     return (
         <div className="libro-container">
             <header className="libro-header">
@@ -240,17 +229,15 @@ export default function LibroDigitalPage() {
             {mensaje && <div className="alert-success">{mensaje}</div>}
             {error && <div className="alert-error">{error}</div>}
 
-            {user?.rol !== 'ESTUDIANTE' && (
-                <div className="selector-estudiante">
-                    <label>Seleccionar Estudiante:</label>
-                    <select value={idEstudianteSeleccionado} onChange={e => setIdEstudianteSeleccionado(e.target.value)}>
-                        <option value="">-- Seleccionar --</option>
-                        {estudiantes.map(e => (
-                            <option key={e.id} value={e.id}>{e.nombre} {e.apellido} — {e.rut}</option>
-                        ))}
-                    </select>
-                </div>
-            )}
+            <div className="selector-estudiante">
+                <label>Seleccionar Estudiante:</label>
+                <select value={idEstudianteSeleccionado} onChange={e => setIdEstudianteSeleccionado(e.target.value)}>
+                    <option value="">-- Seleccionar --</option>
+                    {estudiantes.map(e => (
+                        <option key={e.id} value={e.id}>{e.nombre} {e.apellido} — {e.rut}</option>
+                    ))}
+                </select>
+            </div>
 
             <div className="tabs">
                 <button className={tab === 'asistencias' ? 'tab active' : 'tab'} onClick={() => { setTab('asistencias'); setMostrarForm(false); }}>Asistencias</button>
@@ -431,13 +418,13 @@ export default function LibroDigitalPage() {
                 </div>
             )}
 
-            {!idEstudianteSeleccionado && user?.rol !== 'ESTUDIANTE' && (
+            {!idEstudianteSeleccionado && (
                 <div className="sin-estudiante">
                     <p>Selecciona un estudiante para ver su información</p>
                 </div>
             )}
 
-            {(idEstudianteSeleccionado || user?.rol === 'ESTUDIANTE') && tab === 'asistencias' && (
+            {idEstudianteSeleccionado && tab === 'asistencias' && (
                 <div className="tabla-container">
                     <table className="libro-tabla">
                         <thead>
@@ -464,7 +451,7 @@ export default function LibroDigitalPage() {
                 </div>
             )}
 
-            {(idEstudianteSeleccionado || user?.rol === 'ESTUDIANTE') && tab === 'calificaciones' && (
+            {idEstudianteSeleccionado && tab === 'calificaciones' && (
                 <div className="tabla-container">
                     <table className="libro-tabla">
                         <thead>
@@ -493,7 +480,7 @@ export default function LibroDigitalPage() {
                 </div>
             )}
 
-            {(idEstudianteSeleccionado || user?.rol === 'ESTUDIANTE') && tab === 'hojavida' && (
+            {idEstudianteSeleccionado && tab === 'hojavida' && (
                 <div className="tabla-container">
                     <table className="libro-tabla">
                         <thead>

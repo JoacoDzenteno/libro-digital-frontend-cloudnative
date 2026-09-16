@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+
 import {
     obtenerMensajesPorDestinatario,
     enviarMensaje,
@@ -14,7 +14,6 @@ const TIPOS_MENSAJE = ['NOTIFICACION', 'COMUNICADO', 'ALERTA'];
 
 export default function ComunicacionesPage() {
     const navigate = useNavigate();
-    const { user } = useAuth();
     const [mensajes, setMensajes] = useState([]);
     const [usuarios, setUsuarios] = useState([]);
     const [mostrarForm, setMostrarForm] = useState(false);
@@ -24,7 +23,7 @@ export default function ComunicacionesPage() {
     const [erroresForm, setErroresForm] = useState({});
 
     const [form, setForm] = useState({
-        idRemitente: user?.id || '',
+        idRemitente: '',
         idDestinatario: '',
         asunto: '',
         contenido: '',
@@ -40,11 +39,11 @@ export default function ComunicacionesPage() {
     const cargarDatos = async () => {
         try {
             const [m, u] = await Promise.all([
-                obtenerMensajesPorDestinatario(user.id),
+                obtenerMensajesPorDestinatario('Usuario'),
                 obtenerUsuarios()
             ]);
             setMensajes(m);
-            setUsuarios(u.filter(u => u.id !== user.id));
+            setUsuarios(u.filter(u => u.id !== true));
         } catch (err) {
             setError('Error al cargar mensajes');
         }
@@ -82,13 +81,13 @@ export default function ComunicacionesPage() {
         try {
             await enviarMensaje({
                 ...form,
-                idRemitente: parseInt(user.id),
+                idRemitente: parseInt('Usuario'),
                 idDestinatario: parseInt(form.idDestinatario),
                 fechaEnvio: new Date().toISOString()
             });
             mostrarMensaje('Mensaje enviado correctamente');
             setForm({
-                idRemitente: user?.id || '',
+                idRemitente:'',
                 idDestinatario: '',
                 asunto: '',
                 contenido: '',
