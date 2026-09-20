@@ -1,22 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { registrarUsuario, obtenerUsuarios, buscarUsuarios, actualizarUsuario } from '../services/usuarioService';
+import { obtenerUsuarios, buscarUsuarios, actualizarUsuario } from '../services/usuarioService';
 import './UsuariosPage.css';
 
 const rolesDisponibles = ['ADMINISTRATIVO', 'PROFESOR', 'ESTUDIANTE', 'APODERADO'];
-
-const initialForm = {
-    email: '',
-    rol: 'ESTUDIANTE',
-    persona: {
-        nombre: '',
-        apellido: '',
-        rut: '',
-        email: '',
-        telefono: '',
-        direccion: ''
-    }
-};
 
 const initialFiltros = { nombre: '', rut: '', email: '' };
 
@@ -30,11 +17,8 @@ export default function UsuariosPage() {
     const [campoActivo, setCampoActivo] = useState(null);
     const debounceRef = useRef(null);
 
-    const [form, setForm] = useState(initialForm);
     const [mensaje, setMensaje] = useState('');
     const [error, setError] = useState('');
-    const [mostrarForm, setMostrarForm] = useState(false);
-    const [erroresForm, setErroresForm] = useState({});
     const [erroresEdicion, setErroresEdicion] = useState({});
     const navigate = useNavigate();
 
@@ -124,46 +108,9 @@ export default function UsuariosPage() {
         }
     };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        if (['nombre', 'apellido', 'rut', 'telefono', 'direccion', 'emailPersona'].includes(name)) {
-            setForm({ ...form, persona: { ...form.persona, [name === 'emailPersona' ? 'email' : name]: value } });
-        } else {
-            setForm({ ...form, [name]: value });
-        }
-    };
-
     // ── VALIDACIONES ──────────────────────────────────────────────
 
-    const validarRut = (rut) => /^[0-9]{7,8}-[0-9Kk]$/.test(rut);
-
     const validarTelefono = (tel) => /^[0-9]{9,}$/.test(tel);
-
-    const validarForm = () => {
-        const errs = {};
-        if (!form.email.endsWith('@colegio.cl')) {
-            errs.email = 'El email de acceso debe ser @colegio.cl';
-        }
-        if (!form.persona.nombre.trim() || form.persona.nombre.trim().length < 2) {
-            errs.nombre = 'El nombre debe tener al menos 2 caracteres';
-        }
-        if (!form.persona.apellido.trim() || form.persona.apellido.trim().length < 2) {
-            errs.apellido = 'El apellido debe tener al menos 2 caracteres';
-        }
-        if (!validarRut(form.persona.rut)) {
-            errs.rut = 'El RUT debe tener el formato 12345678-9';
-        }
-        if (!form.persona.email.includes('@') || !form.persona.email.includes('.')) {
-            errs.emailPersona = 'Ingresa un email personal válido';
-        }
-        if (form.persona.telefono && !validarTelefono(form.persona.telefono)) {
-            errs.telefono = 'El teléfono debe tener al menos 9 dígitos numéricos';
-        }
-        if (form.persona.direccion && form.persona.direccion.trim().length < 5) {
-            errs.direccion = 'La dirección debe tener al menos 5 caracteres';
-        }
-        return errs;
-    };
 
     const validarEdicion = () => {
         const errs = {};
@@ -183,27 +130,6 @@ export default function UsuariosPage() {
     };
 
     // ── HANDLERS ──────────────────────────────────────────────────
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setMensaje('');
-        const errs = validarForm();
-        if (Object.keys(errs).length > 0) {
-            setErroresForm(errs);
-            return;
-        }
-        setErroresForm({});
-        try {
-            await registrarUsuario(form);
-            setMensaje(`Usuario creado. Contraseña temporal: ${form.persona.rut}`);
-            setForm(initialForm);
-            setMostrarForm(false);
-            refrescar();
-        } catch (err) {
-            setError('Error al crear el usuario. Verifique los datos.');
-        }
-    };
 
     const abrirEdicion = (usuario) => {
         setUsuarioEditando(usuario);
@@ -264,127 +190,21 @@ export default function UsuariosPage() {
                     ← Volver
                 </button>
                 <h1>Gestión de Usuarios</h1>
-                <button className="btn-nuevo" onClick={() => setMostrarForm(!mostrarForm)}>
-                    {mostrarForm ? 'Cancelar' : '+ Nuevo Usuario'}
-                </button>
             </header>
 
             {mensaje && <div className="alert-success">{mensaje}</div>}
             {error && <div className="alert-error">{error}</div>}
 
-            {mostrarForm && (
-                <div className="form-card">
-                    <h2>Crear Nuevo Usuario</h2>
-                    <form onSubmit={handleSubmit} className="usuario-form">
-                        <div className="form-section">
-                            <h3>Datos de Acceso</h3>
-                            <div className="form-row">
-                                <div className="form-field">
-                                    <label>Email de acceso</label>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={form.email}
-                                        onChange={handleChange}
-                                        placeholder="correo@colegio.cl"
-                                        required
-                                    />
-                                    {erroresForm.email && <span className="error-field">{erroresForm.email}</span>}
-                                </div>
-                                <div className="form-field">
-                                    <label>Rol</label>
-                                    <select name="rol" value={form.rol} onChange={handleChange}>
-                                        {rolesDisponibles.map(r => (
-                                            <option key={r} value={r}>{r}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="form-section">
-                            <h3>Datos Personales</h3>
-                            <div className="form-row">
-                                <div className="form-field">
-                                    <label>Nombre</label>
-                                    <input
-                                        type="text"
-                                        name="nombre"
-                                        value={form.persona.nombre}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                    {erroresForm.nombre && <span className="error-field">{erroresForm.nombre}</span>}
-                                </div>
-                                <div className="form-field">
-                                    <label>Apellido</label>
-                                    <input
-                                        type="text"
-                                        name="apellido"
-                                        value={form.persona.apellido}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                    {erroresForm.apellido && <span className="error-field">{erroresForm.apellido}</span>}
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="form-field">
-                                    <label>RUT (será la contraseña temporal)</label>
-                                    <input
-                                        type="text"
-                                        name="rut"
-                                        value={form.persona.rut}
-                                        onChange={handleChange}
-                                        placeholder="12345678-9"
-                                        required
-                                    />
-                                    {erroresForm.rut && <span className="error-field">{erroresForm.rut}</span>}
-                                </div>
-                                <div className="form-field">
-                                    <label>Email personal</label>
-                                    <input
-                                        type="email"
-                                        name="emailPersona"
-                                        value={form.persona.email}
-                                        onChange={handleChange}
-                                        placeholder="correo@personal.com"
-                                        required
-                                    />
-                                    {erroresForm.emailPersona && <span className="error-field">{erroresForm.emailPersona}</span>}
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="form-field">
-                                    <label>Teléfono</label>
-                                    <input
-                                        type="text"
-                                        name="telefono"
-                                        value={form.persona.telefono}
-                                        onChange={handleChange}
-                                        placeholder="912345678"
-                                    />
-                                    {erroresForm.telefono && <span className="error-field">{erroresForm.telefono}</span>}
-                                </div>
-                                <div className="form-field">
-                                    <label>Dirección</label>
-                                    <input
-                                        type="text"
-                                        name="direccion"
-                                        value={form.persona.direccion}
-                                        onChange={handleChange}
-                                    />
-                                    {erroresForm.direccion && <span className="error-field">{erroresForm.direccion}</span>}
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="submit" className="btn-guardar">
-                            Crear Usuario
-                        </button>
-                    </form>
-                </div>
-            )}
+            <p style={{
+                background: '#eef3f8',
+                border: '1px solid #cfdae6',
+                borderRadius: 4,
+                padding: '10px 14px',
+                fontSize: 14
+            }}>
+                Las cuentas de acceso se crean y se dan de baja en Microsoft Entra ID.
+                Aquí se consultan los usuarios del sistema y se editan sus datos de contacto.
+            </p>
 
             <div className="buscador-card">
                 <form onSubmit={handleBuscar} className="buscador-form">

@@ -1,32 +1,28 @@
-import axios from 'axios';
+import { api } from './api';
 
 const API_URL = 'http://localhost:8080/api/comunicaciones';
 
-const getHeaders = () => ({
-    headers: { Authorization: `Bearer ${getToken()}` }
-});
-
 export const obtenerMensajesPorDestinatario = async (idDestinatario) => {
-    const response = await axios.get(`${API_URL}/destinatario/${idDestinatario}`, getHeaders());
+    const response = await api.get(`${API_URL}/destinatario/${idDestinatario}`);
     return response.data;
 };
 
 export const obtenerMensajesNoLeidos = async (idDestinatario) => {
-    const response = await axios.get(`${API_URL}/destinatario/${idDestinatario}/no-leidos`, getHeaders());
+    const response = await api.get(`${API_URL}/destinatario/${idDestinatario}/no-leidos`);
     return response.data;
 };
 
 export const enviarMensaje = async (mensaje) => {
-    const response = await axios.post(`${API_URL}`, mensaje, getHeaders());
+    const response = await api.post(`${API_URL}`, mensaje);
     return response.data;
 };
 
 export const marcarComoLeido = async (id) => {
-    const response = await axios.patch(`${API_URL}/${id}/leer`, {}, getHeaders());
+    const response = await api.patch(`${API_URL}/${id}/leer`, {});
     return response.data;
 };
 
 export const eliminarMensaje = async (id) => {
-    const response = await axios.delete(`${API_URL}/${id}`, getHeaders());
+    const response = await api.delete(`${API_URL}/${id}`);
     return response.data;
 };

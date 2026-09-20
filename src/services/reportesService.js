@@ -1,33 +1,28 @@
-import axios from 'axios';
-
+import { api } from './api';
 
 const API_URL = 'http://localhost:8080/api/reportes';
 
-const getHeaders = () => ({
-    headers: { Authorization: `Bearer ${getToken()}` }
-});
-
 export const obtenerReportes = async () => {
-    const response = await axios.get(`${API_URL}`, getHeaders());
+    const response = await api.get(`${API_URL}`);
     return response.data;
 };
 
 export const obtenerReportePorId = async (id) => {
-    const response = await axios.get(`${API_URL}/${id}`, getHeaders());
+    const response = await api.get(`${API_URL}/${id}`);
     return response.data;
 };
 
 export const obtenerReportesPorTipo = async (tipo) => {
-    const response = await axios.get(`${API_URL}/tipo/${tipo}`, getHeaders());
+    const response = await api.get(`${API_URL}/tipo/${tipo}`);
     return response.data;
 };
 
 export const generarReporte = async (reporte) => {
-    const response = await axios.post(`${API_URL}`, reporte, getHeaders());
+    const response = await api.post(`${API_URL}`, reporte);
     return response.data;
 };
 
 export const eliminarReporte = async (id) => {
-    const response = await axios.delete(`${API_URL}/${id}`, getHeaders());
+    const response = await api.delete(`${API_URL}/${id}`);
     return response.data;
 };

@@ -1,13 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { PublicClientApplication } from '@azure/msal-browser'
 import { MsalProvider } from '@azure/msal-react'
-import { msalConfig } from './authConfig'
 import './index.css'
 import App from './App.jsx'
 import MsalTest from './MsalTest.jsx'   // TEMPORAL: borrar cuando el login este listo
+import { msalInstance } from './msalInstance'
 
-const msalInstance = new PublicClientApplication(msalConfig)
 
 // La ventana emergente de Microsoft vuelve al redirect URI, que es la raiz de
 // esta misma aplicacion. Si dejamos que la app se monte ahi dentro, el router
