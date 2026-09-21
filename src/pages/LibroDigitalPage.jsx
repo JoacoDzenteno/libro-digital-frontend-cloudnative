@@ -9,6 +9,7 @@ import {
 import { obtenerUsuarios } from '../services/usuarioService';
 import { obtenerCursos, obtenerAsignaturas } from '../services/academicoService';
 import { obtenerMatriculaPorApoderado } from '../services/matriculaService';
+import { useUsuarioActual } from '../hooks/useUsuarioActual';
 import './LibroDigitalPage.css';
 
 const ESTADOS_ASISTENCIA = ['PRESENTE', 'AUSENTE', 'TARDANZA', 'JUSTIFICADO'];
@@ -16,6 +17,7 @@ const TIPOS_ANOTACION = ['POSITIVA', 'NEGATIVA', 'NEUTRA'];
 
 export default function LibroDigitalPage() {
     const navigate = useNavigate();
+    const { rol, interno, cargando: cargandoUsuario } = useUsuarioActual();
     const [tab, setTab] = useState('asistencias');
     const [idEstudianteSeleccionado, setIdEstudianteSeleccionado] = useState('');
     const [estudiantes, setEstudiantes] = useState([]);
@@ -48,8 +50,9 @@ export default function LibroDigitalPage() {
     });
 
     useEffect(() => {
+        if (cargandoUsuario) return;
         cargarDatosIniciales();
-    }, []);
+    }, [cargandoUsuario, rol, interno]);
 
     useEffect(() => {
         if (idEstudianteSeleccionado) {
@@ -59,17 +62,41 @@ export default function LibroDigitalPage() {
 
     const cargarDatosIniciales = async () => {
         try {
-            const [u, c, a] = await Promise.all([
-                obtenerUsuarios(),
-                obtenerCursos(),
-                obtenerAsignaturas()
-            ]);
+            // Cada rol pide solo lo que el gateway le permite.
+            if (rol === 'ADMINISTRATIVO' || rol === 'PROFESOR') {
+                const [u, c, a] = await Promise.all([
+                    obtenerUsuarios(),
+                    obtenerCursos(),
+                    obtenerAsignaturas()
+                ]);
+                setEstudiantes(u.filter(e => e.rol === 'ESTUDIANTE'));
+                setCursos(c);
+                setAsignaturas(a);
+                return;
+            }
 
-            // Como no tenemos el objeto user viejo, dejamos que el usuario elija de todos los estudiantes (solo front-end)
-            setEstudiantes(u.filter(e => e.rol === 'ESTUDIANTE'));
-            
-            setCursos(c);
-            setAsignaturas(a);
+            if (rol === 'ESTUDIANTE' && interno) {
+                // Se ve a si mismo: no hay nada que elegir.
+                setEstudiantes([interno]);
+                setIdEstudianteSeleccionado(String(interno.id));
+                return;
+            }
+
+            if (rol === 'APODERADO' && interno) {
+                // Solo sus pupilos, y a traves de las matriculas: el listado
+                // de usuarios es exclusivo de ADMINISTRATIVO.
+                const matriculas = await obtenerMatriculaPorApoderado(interno.id);
+                const pupilos = matriculas.map(m => ({
+                    id: m.idEstudiante,
+                    nombre: 'Pupilo/a',
+                    apellido: `#${m.idEstudiante}`,
+                    rut: `matrícula ${m.id}`
+                }));
+                setEstudiantes(pupilos);
+                if (pupilos.length === 1) {
+                    setIdEstudianteSeleccionado(String(pupilos[0].id));
+                }
+            }
         } catch (err) {
             setError('Error al cargar datos');
         }
@@ -211,8 +238,16 @@ export default function LibroDigitalPage() {
     const getNombreCurso = (id) => cursos.find(c => c.id === id)?.nombre || `ID: ${id}`;
     const getNombreAsignatura = (id) => asignaturas.find(a => a.id === id)?.nombre || `ID: ${id}`;
 
-    const puedeEditar = true; // True temporalmente para pruebas
- 
+    const puedeEditar = rol === 'ADMINISTRATIVO' || rol === 'PROFESOR';
+
+    if (cargandoUsuario) {
+        return (
+            <div className="libro-container">
+                <p>Cargando…</p>
+            </div>
+        );
+    }
+
     return (
         <div className="libro-container">
             <header className="libro-header">
@@ -229,15 +264,17 @@ export default function LibroDigitalPage() {
             {mensaje && <div className="alert-success">{mensaje}</div>}
             {error && <div className="alert-error">{error}</div>}
 
-            <div className="selector-estudiante">
-                <label>Seleccionar Estudiante:</label>
-                <select value={idEstudianteSeleccionado} onChange={e => setIdEstudianteSeleccionado(e.target.value)}>
-                    <option value="">-- Seleccionar --</option>
-                    {estudiantes.map(e => (
-                        <option key={e.id} value={e.id}>{e.nombre} {e.apellido} — {e.rut}</option>
-                    ))}
-                </select>
-            </div>
+            {rol !== 'ESTUDIANTE' && (
+                <div className="selector-estudiante">
+                    <label>Seleccionar Estudiante:</label>
+                    <select value={idEstudianteSeleccionado} onChange={e => setIdEstudianteSeleccionado(e.target.value)}>
+                        <option value="">-- Seleccionar --</option>
+                        {estudiantes.map(e => (
+                            <option key={e.id} value={e.id}>{e.nombre} {e.apellido} — {e.rut}</option>
+                        ))}
+                    </select>
+                </div>
+            )}
 
             <div className="tabs">
                 <button className={tab === 'asistencias' ? 'tab active' : 'tab'} onClick={() => { setTab('asistencias'); setMostrarForm(false); }}>Asistencias</button>
