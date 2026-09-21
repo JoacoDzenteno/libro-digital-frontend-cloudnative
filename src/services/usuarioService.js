@@ -44,3 +44,8 @@ export const obtenerMiUsuario = async () => {
     const response = await api.get(`${API_URL}/usuarios/me`);
     return response.data;
 };
+
+export const obtenerDirectorio = async () => {
+    const response = await api.get(`${API_URL}/usuarios/directorio`);
+    return response.data;
+};

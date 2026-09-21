@@ -7,13 +7,15 @@ import {
     marcarComoLeido,
     eliminarMensaje
 } from '../services/comunicacionesService';
-import { obtenerUsuarios } from '../services/usuarioService';
+import { obtenerDirectorio } from '../services/usuarioService';
+import { useUsuarioActual } from '../hooks/useUsuarioActual';
 import './ComunicacionesPage.css';
 
 const TIPOS_MENSAJE = ['NOTIFICACION', 'COMUNICADO', 'ALERTA'];
 
 export default function ComunicacionesPage() {
     const navigate = useNavigate();
+    const { interno, cargando: cargandoUsuario } = useUsuarioActual();
     const [mensajes, setMensajes] = useState([]);
     const [usuarios, setUsuarios] = useState([]);
     const [mostrarForm, setMostrarForm] = useState(false);
@@ -33,17 +35,22 @@ export default function ComunicacionesPage() {
     });
 
     useEffect(() => {
+        if (cargandoUsuario) return;
         cargarDatos();
-    }, []);
+    }, [cargandoUsuario, interno]);
 
     const cargarDatos = async () => {
+        if (!interno) return;
         try {
-            const [m, u] = await Promise.all([
-                obtenerMensajesPorDestinatario('Usuario'),
-                obtenerUsuarios()
+            // La bandeja es la de quien esta conectado. El directorio expone
+            // solo id, nombre, apellido y rol, por eso lo puede consultar
+            // cualquier usuario autenticado y no solo ADMINISTRATIVO.
+            const [m, d] = await Promise.all([
+                obtenerMensajesPorDestinatario(interno.id),
+                obtenerDirectorio()
             ]);
             setMensajes(m);
-            setUsuarios(u.filter(u => u.id !== true));
+            setUsuarios(d.filter(x => x.id !== interno.id));
         } catch (err) {
             setError('Error al cargar mensajes');
         }
@@ -81,13 +88,13 @@ export default function ComunicacionesPage() {
         try {
             await enviarMensaje({
                 ...form,
-                idRemitente: parseInt('Usuario'),
+                idRemitente: interno.id,
                 idDestinatario: parseInt(form.idDestinatario),
                 fechaEnvio: new Date().toISOString()
             });
             mostrarMensaje('Mensaje enviado correctamente');
             setForm({
-                idRemitente:'',
+                idRemitente: '',
                 idDestinatario: '',
                 asunto: '',
                 contenido: '',
@@ -128,6 +135,14 @@ export default function ComunicacionesPage() {
 
     const mensajesNoLeidos = mensajes.filter(m => !m.leido);
     const mensajesLeidos = mensajes.filter(m => m.leido);
+
+    if (cargandoUsuario) {
+        return (
+            <div className="comunicaciones-container">
+                <p>Cargando…</p>
+            </div>
+        );
+    }
 
     return (
         <div className="comunicaciones-container">
