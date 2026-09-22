@@ -5,6 +5,8 @@ import { loginRequest } from '../authConfig'
 
 export const api = axios.create()
 
+export const API_BASE = import.meta.env.VITE_API_URL || 'https://cngd3ylkac.execute-api.us-east-1.amazonaws.com/api'
+
 // Equivalente al MsalInterceptor de Angular: adjunta el access token a cada
 // llamada saliente y lo renueva solo cuando esta por vencer.
 // acquireTokenSilent lee la cache de MSAL, asi que no golpea a Microsoft en

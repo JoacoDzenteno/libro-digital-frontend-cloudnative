@@ -1,6 +1,6 @@
-import { api } from './api';
+import { api, API_BASE } from './api';
 
-const API_URL = 'http://localhost:8080/api/comunicaciones';
+const API_URL = `${API_BASE}/comunicaciones`;
 
 export const obtenerMensajesPorDestinatario = async (idDestinatario) => {
     const response = await api.get(`${API_URL}/destinatario/${idDestinatario}`);

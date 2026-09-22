@@ -1,6 +1,6 @@
-import { api } from './api';
+import { api, API_BASE } from './api';
 
-const API_URL = 'http://localhost:8080/api';
+const API_URL = API_BASE;
 
 export const obtenerUsuarios = async () => {
     const response = await api.get(`${API_URL}/usuarios`);

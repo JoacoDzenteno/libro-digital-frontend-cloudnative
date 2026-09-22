@@ -1,6 +1,6 @@
-import { api } from './api';
+import { api, API_BASE } from './api';
 
-const API_URL = 'http://localhost:8080/api/academico';
+const API_URL = `${API_BASE}/academico`;
 
 // Cursos
 export const obtenerCursos = async () => {
